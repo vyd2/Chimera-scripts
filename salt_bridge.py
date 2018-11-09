@@ -55,4 +55,4 @@ def pair_distances(sframe,eframe,pairs)
 		conts = md.compute_distances(traj[frame],pairs)
 		conts_perframe.append(conts)
 
-	return 
+	return conts_perframe
