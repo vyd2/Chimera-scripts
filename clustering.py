@@ -13,6 +13,7 @@ from sklearn import datasets
 import scipy.stats
 from scipy.cluster.vq import kmeans
 from scipy.spatial.distance import cdist,pdist
+from sklearn.preprocessing import StandardScaler
 
 # visualization settings using seaborn 
 sns.set(font_scale=2) 
@@ -50,11 +51,17 @@ def get_dihedrals(top,traj,og_list):
 
     return phi,psi,X
 
+# define function for pooling
+def make_GMM_models(n):
+    model = mixture.GaussianMixture(n, covariance_type='full', random_state=0)
+    return model
 
-def PCA_reduction(X):
+def prep_reduc_gmm(X):
     """X = merged phi and psi dataset 
     """
-    
+    # standardize the data
+    scaler = StandardScaler()
+    X2 = scaler.fit_transform(X2)     
 
     # PCA
     pca = PCA(0.99,whiten=True)
@@ -62,10 +69,15 @@ def PCA_reduction(X):
     print(dihedrals, X2.shape)
 
     
-    # plot AICs and BIC
+    # number of components for testing using AIC/BIC
+    # the optimal component number
     n_components = np.arange(1, 300, 5)
-    models = [mixture.GaussianMixture(n, covariance_type='full', random_state=0)
-              for n in n_components]
+
+    # change processes number 
+    # depending on the cpu used
+    pool = mp.Pool(processes=32)
+    models = pool.map(make_GMM_models,n_components)
+
     aics = [model.fit(X2).aic(X2) for model in models]
     bics = [model.fit(X2).bic(X2) for model in models]
     minbic= dict(zip(n_components,bics))
