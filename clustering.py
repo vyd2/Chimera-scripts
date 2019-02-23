@@ -22,12 +22,7 @@ sns.set_palette("husl")
 
 #############################################
 
-# ALL
-import time 
-
-s_time = time.time()
-
-def get_dihedrals(top,traj,og_list):
+def get_dihedrals(traj,top,og_list):
     """ Get dihedral angles
     """
 
@@ -35,21 +30,21 @@ def get_dihedrals(top,traj,og_list):
     psi_list=[]
 
     # load traj
-    t = md.load(traj,top)
+    t = md.load(traj,top=top)
+    print(t)
 
     # align frames to the first frame
     t.superpose(t, 0)
 
-    ind,phi = md.compute_phi(t)
+    _,phi = md.compute_phi(t)
+    _,psi = md.compute_psi(t)
 
     phi_list.append(phi)
-    phi_list.append(phi)
+    psi_list.append(psi)
 
-    X = [np.concatenate(x) 
-         for index, x in enumerate(zip(np.concatenate(phio),np.concatenate(psio))) 
-         if index in og_list]
+    X = [np.concatenate(x) for index, x in enumerate(zip(np.concatenate(phi),np.concatenate(psi))) if index in og_list]
 
-    return phi,psi,X
+    return phi_list,psi_list,X
 
 # define function for pooling
 def make_GMM_models(n):
